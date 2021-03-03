@@ -1,0 +1,27 @@
+{
+    "name": "nouvu/leeloo",
+    "description": "Leeloo API - PHP 7.4",
+    "type": "library",
+    "license": "MIT",
+	"homepage": "https://github.com/MouseZver/Leeloo-API",
+	"keywords": [
+        "Leeloo",
+		"API",
+		"php7.4"
+    ],
+    "authors": [
+        {
+            "name": "MouseZver",
+            "email": "mouse-zver@xaker.ru"
+        }
+    ],
+	"require": {
+		"php": ">=7.4",
+		"nouvu/config": "^v3.1"
+	},
+	"autoload": {
+		"psr-4": {
+			"Nouvu\\Api\\": "src"
+		}
+	}
+}
