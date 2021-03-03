@@ -63,7 +63,7 @@ $leeloo -> completed_order( $leeloo_order_id, '__price__', '__currency__', '__co
 
 
 
-$leeloo -> sendTemplate( '__leeloo_user_LOGIN_id_hash__', '__template_name_N__' )
+$leeloo -> sendTemplate( '__leeloo_user_LOGIN_id_hash__', '__template_name_N__' );
 ```
 
 Create by [MouseZver](//php.ru/forum/members/40235)
