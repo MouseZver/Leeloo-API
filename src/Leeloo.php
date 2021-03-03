@@ -151,9 +151,9 @@ final class Leeloo
 	
 	protected function setDataTag( array ...$data ): void
 	{
-		if ( count ( $data[1] ) == 3 )
+		if ( count ( $data[1] ) == 2 )
 		{
-			$this -> setData( 'tag', [ 'user_id', 'leeloo_id', 'status' ], $data[1] );
+			$this -> setData( 'tag', $data[0], $data[1] );
 			
 			return;
 		}
@@ -168,7 +168,7 @@ final class Leeloo
 	
 	protected function tag( string $type, array $args ): self
 	{
-		$this -> setDataTag( [ 'user_id', 'leeloo_id', 'status' ], $args );
+		$this -> setDataTag( [ 'leeloo_id', 'status' ], $args );
 		
 		$status_name = $this -> getDataTag( 'status' );
 		
