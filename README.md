@@ -5,7 +5,7 @@ Leeloo API - PHP ver7.4.0
 ## 1. Installation
 [Composer](http://getcomposer.org). Run the following command to install it:
 ```sh
-composer require nouvu/leeloo
+composer require nouvu/leeloo v1.0.0-alpha
 ```
 
 ## 2. Example PHP code
