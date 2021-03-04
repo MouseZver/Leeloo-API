@@ -211,7 +211,7 @@ final class Leeloo
 		] );
 	}
 	
-	public function get_responce(): array
+	public function get_response(): array
 	{
 		return $this -> response;
 	}
