@@ -52,6 +52,8 @@ final class Leeloo extends Core
 			
 			$this -> set -> {$key}( $data );
 		}
+		
+		$this -> verify( $this -> configuration_keys, $leeloo, fn( string $key ) => $this -> set -> {$key}( $leeloo[$key] ) );
 	}
 	
 	public function setSqlCallback( array $sql_callback ): void
@@ -137,13 +139,7 @@ final class Leeloo extends Core
 	
 	public function orderPending( array $data, string $offer ): ?string
 	{
-		foreach ( [ 'email', 'phone', 'accountId' ] AS $key )
-		{
-			if ( empty ( $data[$key] ) )
-			{
-				throw new LeelooException( 'Missing parameter: ' . $key );
-			}
-		}
+		$this -> verify( [ 'email', 'phone', 'accountId' ], $data );
 		
 		$offerId = $this -> getData( 'leeloo.order.offer.' . $offer );
 		
@@ -170,13 +166,7 @@ final class Leeloo extends Core
 	
 	public function orderUpdate( string $leeloo_order_id, array $data ): void
 	{
-		foreach ( [ 'status', 'price', 'currency' ] AS $key )
-		{
-			if ( empty ( $data[$key] ) )
-			{
-				throw new LeelooException( 'Missing parameter: ' . $key );
-			}
-		}
+		$this -> verify( [ 'status', 'price', 'currency' ], $data );
 		
 		$this -> response = $this -> stream( self :: API_ORDER . '/' . $leeloo_order_id, [
 			'status'		=> $data['status'],

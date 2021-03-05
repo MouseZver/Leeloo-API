@@ -82,4 +82,20 @@ class Core
 		
 		return $this;
 	}
+	
+	protected function verify( array $names, array $data, callable $callable = null ): void
+	{
+		foreach ( $names AS $key )
+		{
+			if ( ! isset ( $data[$key] ) )
+			{
+				throw new LeelooException( 'Missing parameter: ' . $key );
+			}
+			
+			if ( is_callable ( $callable ) )
+			{
+				$callable( $key );
+			}
+		}
+	}
 }
