@@ -1,6 +1,6 @@
 {
     "name": "nouvu/leeloo",
-    "description": "Leeloo API - PHP 7.4",
+    "description": "Leeloo API - PHP 7.4.0",
     "type": "library",
     "license": "Apache-2.0",
 	"homepage": "https://github.com/MouseZver/Leeloo-API",

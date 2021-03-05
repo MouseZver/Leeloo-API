@@ -5,14 +5,20 @@ Leeloo API - PHP ver7.4.0
 ## 1. Installation
 [Composer](http://getcomposer.org). Run the following command to install it:
 ```sh
-composer require nouvu/leeloo v1.0.0-alpha
+composer require nouvu/leeloo
 ```
 
 ## 2. Example PHP code
+<details>
+  <summary>View</summary>
 ```php
 <?php
 
-$leeloo = new \Nouvu\Api\Leeloo( [
+$person_id = '595f5d522a934035decc093d';
+
+$account_id = '5aa7dc70839951003a597aa9';
+
+$leeloo_config = [
 	'token' => 'n97ncqx346cn__example_token__7nyc745ty9y78y...',
 	'tags' => [
 		'tag_name_1' => '5cn763_hash_1...',
@@ -31,13 +37,20 @@ $leeloo = new \Nouvu\Api\Leeloo( [
 			'offer_name_2'	=> '5cn763_hash_2...',
 		],
 	]
-], true );
+];
 
+/*
+	argument_2 ( default - true ) - used to save requests to the database ( tags, sendTemplate ) for the limit sending queue. 
+		If the value is 'false', use the setSqlCallback method with the 'insert' parameter
+*/
+$leeloo = new \Nouvu\Api\Leeloo( $leeloo_config, true );
 
-
+/*
+	...
+*/
 $leeloo -> setSqlCallback( [
-	'delete' => fn( int $id ): void => $db -> query( 'DELETE... WHERE id = ' . $id ),
-	'update' => fn( int $id ): void => $db -> query( 'UPDATE... WHERE id = ' . $id ),
+	'delete' => fn( int $id ) => $db -> query( 'DELETE... WHERE id = ' . $id ),
+	'update' => fn( int $id ) => $db -> query( 'UPDATE... WHERE id = ' . $id ),
 	'insert' => static function ( string $api, string $json_data, string $request, string $json_response ) use ( $db ): void
 	{
 		$db -> query( 'INSERT INTO...' );
@@ -45,25 +58,66 @@ $leeloo -> setSqlCallback( [
 ] );
 
 
-
-$leeloo -> addTag( '__leeloo_user_PERSON_id_hash__', '__tag_name_N__' )
+/*
+	Add and remove tags for your account.
+	When shared, the account_id parameter can be omitted
+	
+	API: https://api.leeloo.ai/api/v1/accounts/account_id/add-tag
+	API: https://api.leeloo.ai/api/v1/accounts/account_id/remove-tag
+*/
+$leeloo -> addTag( $account_id, '__tag_name_N__' )
 	-> addTag( '__tag_name_N__' )
 	-> removeTag( '__tag_name_N__' )
 	-> removeTag( '__tag_name_N__' );
 
+/*
+	Add and remove tags to a person.
+	When shared, the person_id parameter can be omitted
+	
+	API: https://api.leeloo.ai/api/v2/people/person_id/add-tag
+	API: https://api.leeloo.ai/api/v2/people/person_id/remove-tag
+*/
+$leeloo -> addTagPeople( $person_id, '__tag_name_N__' )
+	-> removeTagPeople( '__tag_name_N__' );
 
+/*
+	Adding an order
+	
+	API: https://api.leeloo.ai/api/v1/orders
+*/
+$leeloo_order_id = $leeloo -> orderPending( [
+	'email'		=> 'mail@mail.com', 
+	'phone'		=> '+380987654321', 
+	'accountId'	=> $account_id,
+], '__offer_name_N__' );
 
-$leeloo_order_id = $leeloo -> pending_order( [
-	'email'		=> '__email__', 
-	'phone'		=> '__phone__', 
-	'accountId'	=> '__leeloo_user_LOGIN_id_hash__',
-], '__order_offer_name_N__' );
+/*
+	Order update
+	
+	API: https://api.leeloo.ai/api/v1/orders/order_id
+*/
 
-$leeloo -> completed_order( $leeloo_order_id, '__price__', '__currency__', '__comments__' );
+$leeloo -> orderUpdate( $leeloo_order_id, [
+	'status' => 'RESOLVED|REJECTED', 
+	'price' => 9.0, 
+	'currency' => 'RUB|USD|UAH|EUR|...',
+	'userComments' => 'text test'
+] );
 
+// OR short update - RESOLVED
+$leeloo -> orderCompleted( $leeloo_order_id, 9.0, 'USD', 'text test' );
 
+// OR short update - REJECTED
+$leeloo -> orderFailed( $leeloo_order_id, 9.0, 'USD', 'text test' );
 
-$leeloo -> sendTemplate( '__leeloo_user_LOGIN_id_hash__', '__template_name_N__' );
+/*
+	Sending a Message template
+	
+	API: https://api.leeloo.ai/api/v1/messages/send-template
+*/
+$leeloo -> sendTemplate( $account_id, '__template_name_N__' );
 ```
+</details>
 
+=================
 Create by [MouseZver](//php.ru/forum/members/40235)
