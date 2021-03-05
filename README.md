@@ -117,5 +117,4 @@ $leeloo -> orderFailed( $leeloo_order_id, 9.0, 'USD', 'text test' );
 $leeloo -> sendTemplate( $account_id, '__template_name_N__' );
 ```
 
-=================
 Create by [MouseZver](//php.ru/forum/members/40235)
