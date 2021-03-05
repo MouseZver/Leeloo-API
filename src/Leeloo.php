@@ -43,16 +43,6 @@ final class Leeloo extends Core
 		
 		$this -> set = new Setting( $this -> config );
 		
-		foreach ( $leeloo AS $key => $data )
-		{
-			if ( ! in_array ( $key, $this -> configuration_keys ) )
-			{
-				throw new LeelooException( 'Configuration key - not found: ' . $key );
-			}
-			
-			$this -> set -> {$key}( $data );
-		}
-		
 		$this -> verify( $this -> configuration_keys, $leeloo, fn( string $key ) => $this -> set -> {$key}( $leeloo[$key] ) );
 	}
 	
