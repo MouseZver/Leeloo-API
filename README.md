@@ -40,7 +40,7 @@ $leeloo_config = [
 
 /*
 	@argument_2 ( default = true ) - used to save requests to the database ( tags, sendTemplate ) for the limit sending queue. 
-		If the value is 'false', use the setSqlCallback method with the 'insert' parameter
+	If the value is 'false', use the setSqlCallback method with the 'insert' parameter
 */
 $leeloo = new \Nouvu\Api\Leeloo( $leeloo_config, true );
 
