@@ -9,8 +9,7 @@ composer require nouvu/leeloo
 ```
 
 ## 2. Example PHP code
-<details>
-  <summary>View</summary>
+
 ```php
 <?php
 
@@ -117,7 +116,6 @@ $leeloo -> orderFailed( $leeloo_order_id, 9.0, 'USD', 'text test' );
 */
 $leeloo -> sendTemplate( $account_id, '__template_name_N__' );
 ```
-</details>
 
 =================
 Create by [MouseZver](//php.ru/forum/members/40235)
