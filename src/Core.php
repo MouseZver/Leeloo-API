@@ -2,7 +2,7 @@
 
 declare ( strict_types = 1 );
 
-namespace Nouvu\Api;
+namespace Nouvu\Leeloo;
 
 use Nouvu\Config\Config;
 
@@ -29,11 +29,19 @@ class Core
 			],
 		] );
 		
+		// string(42) "Too many requests, please try again later."
 		$response = curl_exec ( $curl );
 		
 		curl_close ( $curl );
 		
-		return json_decode ( $response ?: '[]', true );
+		$s = json_decode ( $response, true );
+		
+		if ( is_null ( $s ) )
+		{
+			var_dump ( $response );exit;
+		}
+		
+		return $s;
 	}
 	
 	protected function setData( string $name, array $keys, array $data ): void
@@ -63,7 +71,7 @@ class Core
 		return $this -> getData( 'tag.' . $name );
 	}
 	
-	protected function tag( string $link, string $type, array $args ): self
+	protected function tag( string $api_name, string $type, array $args ): self
 	{
 		$this -> setDataTag( [ 'leeloo_id', 'status' ], $args );
 		
@@ -76,9 +84,11 @@ class Core
 			throw new LeelooException( 'Not found status id for tag: ' . $status_name );
 		}
 		
-		$link = sprintf ( $link, $this -> getDataTag( 'leeloo_id' ), $type );
+		$this -> setVars( __FUNCTION__, func_get_args () );
 		
-		$this -> send( $link, [ 'tag_id' => $status_id ], 'PUT' );
+		$link = sprintf ( static :: API[$api_name], $this -> getDataTag( 'leeloo_id' ), $type );
+		
+		$this -> send( $link, [ 'tag_id' => $status_id, 'api' => $api_name ], 'PUT' );
 		
 		return $this;
 	}
@@ -96,6 +106,24 @@ class Core
 			{
 				$callable( $key );
 			}
+		}
+	}
+	
+	protected function setVars( string $name, array $args ): void
+	{
+		$this -> setData( 'vars', [ 'method', 'args' ], [ $name, $args ] );
+	}
+	
+	protected function getVars(): array
+	{
+		return $this -> getData( 'vars' );
+	}
+	
+	protected function VerifyOrderStatus(): void
+	{
+		if ( empty ( $this -> response['status'] ) )
+		{
+			throw new LeelooOrderFailed( 'The sent order failed' );
 		}
 	}
 }

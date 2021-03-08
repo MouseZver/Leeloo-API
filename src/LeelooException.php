@@ -1,6 +1,6 @@
 <?php
 
-namespace Nouvu\Api;
+namespace Nouvu\Leeloo;
 
 final class LeelooException extends \Error
 {

@@ -2,7 +2,7 @@
 
 declare ( strict_types = 1 );
 
-namespace Nouvu\Api;
+namespace Nouvu\Leeloo;
 
 use Nouvu\Config\Config;
 

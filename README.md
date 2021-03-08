@@ -5,7 +5,7 @@ Leeloo API - PHP ver7.4.0
 ## 1. Installation
 [Composer](http://getcomposer.org). Run the following command to install it:
 ```sh
-composer require nouvu/leeloo v2.0.0
+composer require nouvu/leeloo
 ```
 
 ## 2. Example PHP code
@@ -39,8 +39,8 @@ $leeloo_config = [
 ];
 
 /*
-	@argument_2 ( default = true ) - used to save requests to the database ( tags, sendTemplate ) for the limit sending queue. 
-	If the value is 'false', use the setSqlCallback method with the 'insert' parameter
+	argument_2 ( default - true ) - used to save requests to the database ( tags, sendTemplate ) for the limit sending queue. 
+		If the value is 'false', use the setSqlCallback method with the 'insert' parameter
 */
 $leeloo = new \Nouvu\Api\Leeloo( $leeloo_config, true );
 
@@ -116,5 +116,7 @@ $leeloo -> orderFailed( $leeloo_order_id, 9.0, 'USD', 'text test' );
 */
 $leeloo -> sendTemplate( $account_id, '__template_name_N__' );
 ```
+
+=================
 
 Create by [MouseZver](//php.ru/forum/members/40235)

@@ -2,24 +2,21 @@
 
 declare ( strict_types = 1 );
 
-namespace Nouvu\Api;
+namespace Nouvu\Leeloo;
 
 use Nouvu\Config\Config;
 
-final class Leeloo extends Core
+final class Api extends Core
 {
-	const API_TAG = [
-		1 => 'https://api.leeloo.ai/api/v1/accounts/%s/%s-tag',
-		2 => 'https://api.leeloo.ai/api/v2/people/%s/%s-tag'
+	const API = [
+		'tag_accounts' => 'https://api.leeloo.ai/api/v1/accounts/%s/%s-tag',
+		'tag_people' => 'https://api.leeloo.ai/api/v2/people/%s/%s-tag',
+		'send_template' => 'https://api.leeloo.ai/api/v1/messages/send-template',
+		'send_message' => 'https://api.leeloo.ai/api/v1/messages/send-message',
+		'orders_add' => 'https://api.leeloo.ai/api/v1/orders',
 	];
 	
-	const API_TEMPLATE = 'https://api.leeloo.ai/api/v1/messages/send-template';
-	
-	const API_ORDER = 'https://api.leeloo.ai/api/v1/orders';
-	
 	private array $response = [];
-	
-	private bool $send;
 	
 	private array $configuration_keys = [ 
 		'token', 
@@ -30,15 +27,15 @@ final class Leeloo extends Core
 	
 	public function __construct ( array $leeloo, bool $send = true )
 	{
-		$this -> send = $send;
-		
 		$this -> config = new Config( [ 
 			'leeloo' => [],
 			'sql_callback' => [
 				'delete' => fn(): bool => false,
 				'update' => fn(): bool => false,
 				'insert' => fn(): bool => false,
-			]
+				'order'
+			],
+			'send' => $send
 		] );
 		
 		$this -> set = new Setting( $this -> config );
@@ -51,12 +48,9 @@ final class Leeloo extends Core
 		$this -> set -> sqlCallback( $sql_callback );
 	}
 	
-	/*
-		
-	*/
 	public function send( string $link, array $data, string $request = 'POST', bool $cron = false, int $id = 0 ): bool
 	{
-		$this -> response = ( $this -> send ? $this -> stream( $link, $data, $request ) : [ 'send' => 'setSqlCallback' ] );
+		$this -> response = ( $this -> getData( 'send' ) ? $this -> stream( $link, $data, $request ) : [ 'send' => 'setSqlCallback' ] );
 		
 		if ( ! empty ( $this -> response['status'] ) )
 		{
@@ -75,31 +69,29 @@ final class Leeloo extends Core
 			return false;
 		}
 		
-		$call = $this -> getData( 'sql_callback.insert' );
-		
-		$call( $link, json_encode ( $data ), $request, json_encode ( $this -> response ) );
+		$this -> save();
 		
 		return false;
 	}
 	
 	public function addTag( /* int | string */ ...$args ): self
 	{
-		return $this -> tag( self :: API_TAG[1], 'add', $args );
+		return $this -> tag( 'tag_accounts', 'add', $args );
 	}
 	
 	public function removeTag( /* int | string */ ...$args ): self
 	{
-		return $this -> tag( self :: API_TAG[1], 'remove', $args );
+		return $this -> tag( 'tag_accounts', 'remove', $args );
 	}
 	
 	public function addTagPeople( /* int | string */ ...$args ): self
 	{
-		return $this -> tag( self :: API_TAG[2], 'add', $args );
+		return $this -> tag( 'tag_people', 'add', $args );
 	}
 	
 	public function removeTagPeople( /* int | string */ ...$args ): self
 	{
-		return $this -> tag( self :: API_TAG[2], 'remove', $args );
+		return $this -> tag( 'tag_people', 'remove', $args );
 	}
 	
 	public function sendTemplate( string $account_id, string $template ): void
@@ -111,9 +103,21 @@ final class Leeloo extends Core
 			throw new LeelooException( 'template_id not found by name: ' . $template );
 		}
 		
-		$this -> send( self :: API_TEMPLATE, [ 
+		$this -> setVars( __FUNCTION__, func_get_args () );
+		
+		$this -> send( self :: API['send_template'], [ 
 			'account_id' => $account_id,
 			'template_id' => $template_id
+		] );
+	}
+	
+	public function sendMessage( string $account_id, string $message ): void
+	{
+		$this -> setVars( __FUNCTION__, func_get_args () );
+		
+		$this -> send( self :: API['send_message'], [ 
+			'account_id' => $account_id,
+			'text' => $message
 		] );
 	}
 	
@@ -138,18 +142,17 @@ final class Leeloo extends Core
 			throw new LeelooException( 'offerId not found by name: ' . $offer );
 		}
 		
-		$this -> response = $this -> stream( self :: API_ORDER, $data + [
+		$this -> setVars( __FUNCTION__, func_get_args () );
+		
+		$this -> response = $this -> stream( self :: API['orders_add'], $data + [
 			'paymentCreditsId'	=> $this -> getData( 'leeloo.order.paymentCreditsId' ),
-			'transactionDate'	=> gmdate ( 'Y-m-d H:i:s' ),
+			'transactionDate'	=> gmdate ( 'Y-m-d H:i' ),
 			'offerId'			=> $offerId,
 			'isNotifyAccount'	=> 'false',
 		], 
 		'POST' );
 		
-		if ( empty ( $this -> response['status'] ) )
-		{
-			throw new LeelooOrderFailed( 'The sent order failed' );
-		}
+		$this -> VerifyOrderStatus();
 		
 		return $this -> get_order_id();
 	}
@@ -158,19 +161,18 @@ final class Leeloo extends Core
 	{
 		$this -> verify( [ 'status', 'price', 'currency' ], $data );
 		
-		$this -> response = $this -> stream( self :: API_ORDER . '/' . $leeloo_order_id, [
-			'status'		=> $data['status'],
-			'price'			=> round ( trim ( $data['price'] ) * 100 ),
-			'currency'		=> $data['currency'],
-			'paymentDate'	=> gmdate ( 'Y-m-d H:i:s' ),
-			'userComments'	=> $data['userComments'] ?? null,
+		$this -> setVars( __FUNCTION__, func_get_args () );
+		
+		$this -> response = $this -> stream( self :: API['orders_add'] . '/' . $leeloo_order_id, [
+			'status'			=> $data['status'],
+			'price'				=> sprintf ( '%d', $data['price'] ),
+			'currency'			=> $data['currency'],
+			'paymentDate'		=> gmdate ( 'Y-m-d H:i' ),
+			'userComments'		=> $data['userComments'] ?? null,
 		], 
 		'POST' );
 		
-		if ( empty ( $this -> response['status'] ) )
-		{
-			throw new LeelooOrderFailed( 'The sent order failed' );
-		}
+		$this -> VerifyOrderStatus();
 	}
 	
 	public function orderCompleted( string $leeloo_order_id, /* int | float */ $price, string $currency = 'USD', string $comments = 'card' ): void
@@ -191,5 +193,24 @@ final class Leeloo extends Core
 			'currency'		=> $currency,
 			'userComments'	=> $comments,
 		] );
+	}
+	
+	public function save(): void
+	{
+		[ 'method' => $method, 'args' => $args ] = $this -> getVars();
+		
+		$this -> getData( 'sql_callback.insert' )( $method, $args );
+	}
+	
+	public function cron( array $data ): void
+	{
+		/* $data -> 
+		
+		$this -> verify( [ 'id', 'method', 'args' ] );
+		
+		try
+		{
+			
+		} */
 	}
 }
