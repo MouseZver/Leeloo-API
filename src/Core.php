@@ -12,7 +12,7 @@ class Core
 	
 	protected Setting $set;
 	
-	protected function stream( string $link, array $data, string $request ): ?array
+	protected function stream( string $link, array $data, string $request ): array
 	{
 		$curl = curl_init ();
 		
@@ -34,14 +34,7 @@ class Core
 		
 		curl_close ( $curl );
 		
-		$s = json_decode ( $response, true );
-		
-		if ( is_null ( $s ) )
-		{
-			var_dump ( $response );exit;
-		}
-		
-		return $s;
+		return json_decode ( $response, true ) ?? [ 'response' => $response ];
 	}
 	
 	protected function setData( string $name, array $keys, array $data ): void

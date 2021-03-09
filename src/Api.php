@@ -25,6 +25,10 @@ final class Api extends Core
 		'order' 
 	];
 	
+	private bool $cron = false;
+	
+	private int $id = 0;
+	
 	public function __construct ( array $leeloo, bool $send = true )
 	{
 		$this -> config = new Config( [ 
@@ -48,28 +52,28 @@ final class Api extends Core
 		$this -> set -> sqlCallback( $sql_callback );
 	}
 	
-	public function send( string $link, array $data, string $request = 'POST', bool $cron = false, int $id = 0 ): bool
+	public function send( string $link, array $data, string $request = 'POST' ): bool
 	{
 		$this -> response = ( $this -> getData( 'send' ) ? $this -> stream( $link, $data, $request ) : [ 'send' => 'setSqlCallback' ] );
 		
 		if ( ! empty ( $this -> response['status'] ) )
 		{
-			if ( $cron )
+			if ( $this -> cron )
 			{
-				$this -> getData( 'sql_callback.delete' )( $id );
+				$this -> getData( 'sql_callback.delete' )( $this -> id );
 			}
 			
 			return true;
 		}
 		
-		if ( $cron )
+		if ( $this -> cron )
 		{
-			$this -> getData( 'sql_callback.update' )( $id );
+			$this -> getData( 'sql_callback.update' )( $this -> id, json_encode ( $this -> getResponse() ) );
 			
 			return false;
 		}
 		
-		$this -> save();
+		$this -> saveFailure();
 		
 		return false;
 	}
@@ -121,7 +125,7 @@ final class Api extends Core
 		] );
 	}
 	
-	public function get_response(): array
+	public function getResponse(): array
 	{
 		return $this -> response;
 	}
@@ -195,22 +199,33 @@ final class Api extends Core
 		] );
 	}
 	
-	public function save(): void
+	public function saveFailure(): void
 	{
 		[ 'method' => $method, 'args' => $args ] = $this -> getVars();
 		
-		$this -> getData( 'sql_callback.insert' )( $method, $args );
+		$this -> getData( 'sql_callback.insert' )( $method, json_encode ( $args ), json_encode ( $this -> getResponse() ) );
 	}
 	
-	public function cron( array $data ): void
+	public function cron( array $queue ): void
 	{
-		/* $data -> 
+		$this -> cron = true;
 		
-		$this -> verify( [ 'id', 'method', 'args' ] );
+		$this -> id = $queue['id'];
 		
 		try
 		{
+			$this -> {$queue['method']}( ...$queue['data'] );
 			
-		} */
+			if ( in_array ( $queue['method'], [ 'orderPending', 'orderUpdate' ] ) )
+			{
+				$this -> getData( 'sql_callback.delete' )( $this -> id );
+			}
+		}
+		catch ( LeelooOrderFailed $e )
+		{
+			$this -> getData( 'sql_callback.update' )( $this -> id, json_encode ( $this -> getResponse() ) );
+			
+			throw $e;
+		}
 	}
 }
