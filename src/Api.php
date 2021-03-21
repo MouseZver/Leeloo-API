@@ -37,7 +37,6 @@ final class Api extends Core
 				'delete' => fn(): bool => false,
 				'update' => fn(): bool => false,
 				'insert' => fn(): bool => false,
-				'order'
 			],
 			'send' => $send
 		] );
@@ -203,6 +202,11 @@ final class Api extends Core
 	{
 		[ 'method' => $method, 'args' => $args ] = $this -> getVars();
 		
+		if ( $method == 'orderPending' )
+		{
+			throw new LeelooException( 'The orderPending method is not allowed for data processing' );
+		}
+		
 		$this -> getData( 'sql_callback.insert' )( $method, json_encode ( $args ), json_encode ( $this -> getResponse() ) );
 	}
 	
@@ -210,13 +214,15 @@ final class Api extends Core
 	{
 		$this -> cron = true;
 		
-		$this -> id = $queue['id'];
+		$this -> id = ( int ) $queue['id'];
+		
+		$data = json_decode ( $queue['data'], true );
 		
 		try
 		{
-			$this -> {$queue['method']}( ...$queue['data'] );
+			$this -> {$queue['method']}( ...$data );
 			
-			if ( in_array ( $queue['method'], [ 'orderPending', 'orderUpdate' ] ) )
+			if ( $queue['method'] == 'orderUpdate' )
 			{
 				$this -> getData( 'sql_callback.delete' )( $this -> id );
 			}

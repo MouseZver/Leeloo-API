@@ -70,6 +70,8 @@ class Core
 		
 		$status_name = $this -> getDataTag( 'status' );
 		
+		$leeloo_id = $this -> getDataTag( 'leeloo_id' );
+		
 		$status_id = $this -> getData( 'leeloo.tags.' . $status_name );
 		
 		if ( is_null ( $status_id ) )
@@ -77,9 +79,9 @@ class Core
 			throw new LeelooException( 'Not found status id for tag: ' . $status_name );
 		}
 		
-		$this -> setVars( __FUNCTION__, func_get_args () );
+		$this -> setVars( __FUNCTION__, [ $api_name, $type, [ $leeloo_id, $status_name ] ] );
 		
-		$link = sprintf ( static :: API[$api_name], $this -> getDataTag( 'leeloo_id' ), $type );
+		$link = sprintf ( static :: API[$api_name], $leeloo_id, $type );
 		
 		$this -> send( $link, [ 'tag_id' => $status_id, 'api' => $api_name ], 'PUT' );
 		
@@ -114,7 +116,7 @@ class Core
 	
 	protected function VerifyOrderStatus(): void
 	{
-		if ( empty ( $this -> response['status'] ) )
+		if ( empty ( $this -> getResponse()['status'] ) )
 		{
 			throw new LeelooOrderFailed( 'The sent order failed' );
 		}
