@@ -25,7 +25,7 @@ final class Api extends Core
 		'order' 
 	];
 	
-	private bool $cron = false;
+	protected bool $cron = false;
 	
 	private int $id = 0;
 	
@@ -106,7 +106,7 @@ final class Api extends Core
 			throw new LeelooException( 'template_id not found by name: ' . $template );
 		}
 		
-		$this -> setVars( __FUNCTION__, func_get_args () );
+		$this -> setVars( __FUNCTION__, func_get_args (), 1 );
 		
 		$this -> send( self :: API['send_template'], [ 
 			'account_id' => $account_id,
@@ -116,12 +116,18 @@ final class Api extends Core
 	
 	public function sendMessage( string $account_id, string $message ): void
 	{
-		$this -> setVars( __FUNCTION__, func_get_args () );
+		$this -> setVars( __FUNCTION__, func_get_args (), 1 );
+		
+		$send = $this -> getData( 'send' );
+		
+		$this -> config -> set( 'send', fn( &$config ) => $config = true );
 		
 		$this -> send( self :: API['send_message'], [ 
 			'account_id' => $account_id,
 			'text' => $message
 		] );
+		
+		$this -> config -> set( 'send', fn( &$config ) => $config = $send );
 	}
 	
 	public function getResponse(): array
@@ -145,7 +151,7 @@ final class Api extends Core
 			throw new LeelooException( 'offerId not found by name: ' . $offer );
 		}
 		
-		$this -> setVars( __FUNCTION__, func_get_args () );
+		$this -> setVars( __FUNCTION__, func_get_args (), 2 );
 		
 		$this -> response = $this -> stream( self :: API['orders_add'], $data + [
 			'paymentCreditsId'	=> $this -> getData( 'leeloo.order.paymentCreditsId' ),
@@ -164,7 +170,7 @@ final class Api extends Core
 	{
 		$this -> verify( [ 'status', 'price', 'currency' ], $data );
 		
-		$this -> setVars( __FUNCTION__, func_get_args () );
+		$this -> setVars( __FUNCTION__, func_get_args (), 2 );
 		
 		$this -> response = $this -> stream( self :: API['orders_add'] . '/' . $leeloo_order_id, [
 			'status'			=> $data['status'],
@@ -200,14 +206,14 @@ final class Api extends Core
 	
 	public function saveFailure(): void
 	{
-		[ 'method' => $method, 'args' => $args ] = $this -> getVars();
+		[ 'method' => $method, 'args' => $args, 'priority' => $priority ] = $this -> getVars();
 		
 		if ( $method == 'orderPending' )
 		{
 			throw new LeelooException( 'The orderPending method is not allowed for data processing' );
 		}
 		
-		$this -> getData( 'sql_callback.insert' )( $method, json_encode ( $args ), json_encode ( $this -> getResponse() ) );
+		$this -> getData( 'sql_callback.insert' )( $method, json_encode ( $args ), json_encode ( $this -> getResponse() ), $priority );
 	}
 	
 	public function cron( array $queue ): void

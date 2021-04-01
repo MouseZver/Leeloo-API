@@ -79,11 +79,17 @@ class Core
 			throw new LeelooException( 'Not found status id for tag: ' . $status_name );
 		}
 		
-		$this -> setVars( __FUNCTION__, [ $api_name, $type, [ $leeloo_id, $status_name ] ] );
+		$this -> setVars( __FUNCTION__, [ $api_name, $type, [ $leeloo_id, $status_name ] ], 3 );
 		
 		$link = sprintf ( static :: API[$api_name], $leeloo_id, $type );
 		
+		$send = $this -> getData( 'send' );
+		
+		$this -> config -> set( 'send', fn( &$config ) => $config = $this -> cron );
+		
 		$this -> send( $link, [ 'tag_id' => $status_id, 'api' => $api_name ], 'PUT' );
+		
+		$this -> config -> set( 'send', fn( &$config ) => $config = $send );
 		
 		return $this;
 	}
@@ -104,9 +110,9 @@ class Core
 		}
 	}
 	
-	protected function setVars( string $name, array $args ): void
+	protected function setVars( string $name, array $args, int $priority ): void
 	{
-		$this -> setData( 'vars', [ 'method', 'args' ], [ $name, $args ] );
+		$this -> setData( 'vars', [ 'method', 'args', 'priority' ], [ $name, $args, $priority ] );
 	}
 	
 	protected function getVars(): array
