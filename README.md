@@ -101,6 +101,7 @@ COLLATE = utf8_bin;
 ## Methods:
 
 add-tag
+
 [#Добавить-тег-человеку](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Добавить-тег-человеку)
 ```php
 /*
@@ -111,6 +112,7 @@ $leeloo -> addTagPeople( string $person_id, string $tag ): \Nouvu\Leeloo\Api
 ```
 
 remove-tag
+
 [#Удалить-тег-у-человека](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Удалить-тег-у-человека)
 ```php
 /*
@@ -121,6 +123,7 @@ $leeloo -> removeTagPeople( string $person_id, string $tag ): \Nouvu\Leeloo\Api
 ```
 
 send-template
+
 [#Отправка-шаблона-сообщения](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-шаблона-сообщения)
 ```php
 /*
@@ -131,6 +134,7 @@ $leeloo -> sendTemplate( string $account_id, string $template ): void
 ```
 
 send-message
+
 [#Отправка-сообщений](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-сообщений)
 ```php
 /*
@@ -142,7 +146,9 @@ $leeloo -> sendMessage( string $account_id, string $message, bool $sending = tru
 ```
 
 create order
+
 [#Создать-ручной-ордер](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Создать-ручной-ордер)
+
 [Пример](https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_pending.php)
 ```php
 /*
@@ -154,7 +160,9 @@ $leeloo_order_id = $leeloo -> orderPending( string $email, string $phone, string
 ```
 
 update order - RESOLVED
+
 [#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере)
+
 [Пример](https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php)
 ```php
 /*
@@ -167,7 +175,9 @@ $leeloo -> orderCompleted( string $leeloo_order_id, int | float $price, string $
 ```
 
 update order - REJECTED
+
 [#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере)
+
 [Пример](https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php)
 ```php
 /*
