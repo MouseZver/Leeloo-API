@@ -81,12 +81,27 @@ $leeloo = new \Nouvu\Leeloo\Api( $config, $storage, true );
 Set the task in cron to run (every 2 minutes) with the following code in the example:
 https://github.com/MouseZver/Leeloo-API/blob/main/example/cron.php
 
+## 3.Create table
+```sql
+CREATE TABLE `leeloo_queue_cron` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`method` VARCHAR(20) NOT NULL,
+	`data` JSON NOT NULL,
+	`response` JSON NOT NULL,
+	`priority` INT NOT NULL,
+	`again` INT NOT NULL DEFAULT 1,
+	`created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	PRIMARY KEY (`id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COLLATE = utf8_bin;
+```
 ***
 
 ## Methods:
 
 add-tag
-https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Добавить-тег-человеку
+~ https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Добавить-тег-человеку
 ```php
 /*
     @person_id<string> - leeloo person_id people
@@ -96,7 +111,7 @@ $leeloo -> addTagPeople( string $person_id, string $tag ): \Nouvu\Leeloo\Api
 ```
 
 remove-tag
-https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Удалить-тег-у-человека
+~ https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Удалить-тег-у-человека
 ```php
 /*
     @person_id - leeloo person_id people
@@ -106,7 +121,7 @@ $leeloo -> removeTagPeople( string $person_id, string $tag ): \Nouvu\Leeloo\Api
 ```
 
 send-template
-https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-шаблона-сообщения
+~ https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-шаблона-сообщения
 ```php
 /*
     @person_id - leeloo $account_id
@@ -116,7 +131,7 @@ $leeloo -> sendTemplate( string $account_id, string $template ): void
 ```
 
 send-message
-https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-сообщений
+~ https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-сообщений
 ```php
 /*
     @account_id - leeloo account_id
@@ -127,8 +142,8 @@ $leeloo -> sendMessage( string $account_id, string $message, bool $sending = tru
 ```
 
 create order
-https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Создать-ручной-ордер
-https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_pending.php
+~ https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Создать-ручной-ордер
+~ https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_pending.php
 ```php
 /*
     @account_id - leeloo account_id
@@ -139,8 +154,8 @@ $leeloo_order_id = $leeloo -> orderPending( string $email, string $phone, string
 ```
 
 update order - RESOLVED
-https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере
-https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php
+~ https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере
+~ https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php
 ```php
 /*
     @leeloo_order_id - leeloo order id
@@ -152,8 +167,8 @@ $leeloo -> orderCompleted( string $leeloo_order_id, int | float $price, string $
 ```
 
 update order - REJECTED
-https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере
-https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php
+~ https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере
+~ https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php
 ```php
 /*
     @leeloo_order_id - leeloo order id
