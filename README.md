@@ -101,7 +101,7 @@ COLLATE = utf8_bin;
 ## Methods:
 
 add-tag
-[(https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Добавить-тег-человеку)](#Добавить-тег-человеку)
+[#Добавить-тег-человеку](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Добавить-тег-человеку)
 ```php
 /*
     @person_id<string> - leeloo person_id people
@@ -111,7 +111,7 @@ $leeloo -> addTagPeople( string $person_id, string $tag ): \Nouvu\Leeloo\Api
 ```
 
 remove-tag
-[(https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Удалить-тег-у-человека)](#Удалить-тег-у-человека)
+[#Удалить-тег-у-человека](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Удалить-тег-у-человека)
 ```php
 /*
     @person_id - leeloo person_id people
@@ -121,7 +121,7 @@ $leeloo -> removeTagPeople( string $person_id, string $tag ): \Nouvu\Leeloo\Api
 ```
 
 send-template
-[(https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-шаблона-сообщения)](#Отправка-шаблона-сообщения)
+[#Отправка-шаблона-сообщения](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-шаблона-сообщения)
 ```php
 /*
     @person_id - leeloo $account_id
@@ -131,7 +131,7 @@ $leeloo -> sendTemplate( string $account_id, string $template ): void
 ```
 
 send-message
-[(https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-сообщений)](#Отправка-сообщений)
+[#Отправка-сообщений](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Отправка-сообщений)
 ```php
 /*
     @account_id - leeloo account_id
@@ -142,8 +142,8 @@ $leeloo -> sendMessage( string $account_id, string $message, bool $sending = tru
 ```
 
 create order
-[(https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Создать-ручной-ордер)](#Создать-ручной-ордер)
-[(https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_pending.php)](Пример)
+[#Создать-ручной-ордер](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Создать-ручной-ордер)
+[Пример](https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_pending.php)
 ```php
 /*
     @account_id - leeloo account_id
@@ -154,8 +154,8 @@ $leeloo_order_id = $leeloo -> orderPending( string $email, string $phone, string
 ```
 
 update order - RESOLVED
-[(https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере)](#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере)
-[(https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php)](Пример)
+[#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере)
+[Пример](https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php)
 ```php
 /*
     @leeloo_order_id - leeloo order id
@@ -167,8 +167,8 @@ $leeloo -> orderCompleted( string $leeloo_order_id, int | float $price, string $
 ```
 
 update order - REJECTED
-[(https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере)](#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере)
-[(https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php)](Пример)
+[#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере](https://leelooai.atlassian.net/wiki/spaces/DOC/pages/1389756423/API+v+2.0#Обновить-информацию-в-МАНУАЛ-(ручном)-ордере)
+[Пример](https://github.com/MouseZver/Leeloo-API/blob/main/example/failed_order_update.php)
 ```php
 /*
     @leeloo_order_id - leeloo order id
