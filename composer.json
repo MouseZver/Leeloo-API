@@ -5,9 +5,10 @@
     "license": "Apache-2.0",
 	"homepage": "https://github.com/MouseZver/Leeloo-API",
 	"keywords": [
-        "Leeloo",
+        "Leeloo.ai",
 		"API",
-		"php7.4"
+		"php7.4",
+		"Ver 2"
     ],
     "authors": [
         {
@@ -17,7 +18,8 @@
     ],
 	"require": {
 		"php": ">=7.4",
-		"nouvu/config": "^v3.1"
+		"nouvu/config": "^v3.1",
+		"nouvu/query-storing": "^v1.0.2"
 	},
 	"autoload": {
 		"psr-4": {

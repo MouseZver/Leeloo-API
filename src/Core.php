@@ -12,29 +12,13 @@ class Core
 	
 	protected Setting $set;
 	
-	protected function stream( string $link, array $data, string $request ): array
+	protected function stream( string $link, array $data, string $request ): Response
 	{
-		$curl = curl_init ();
+		$response = new Response;
 		
-		curl_setopt_array ( $curl, 
-		[
-			CURLOPT_URL             => $link,
-			CURLOPT_POSTFIELDS		=> json_encode ( $data ),
-			CURLOPT_RETURNTRANSFER  => true,
-			CURLOPT_FOLLOWLOCATION  => true,
-			CURLOPT_CUSTOMREQUEST	=> $request,
-			CURLOPT_HTTPHEADER      => [
-				'Content-Type: application/json',
-				'X-Leeloo-AuthToken: ' . $this -> getData( 'leeloo.token' ),
-			],
-		] );
+		$response -> url( $link ) -> data( $data ) -> request( $request ) -> token( $this -> getData( 'leeloo.token' ) ) -> init();
 		
-		// string(42) "Too many requests, please try again later."
-		$response = curl_exec ( $curl );
-		
-		curl_close ( $curl );
-		
-		return json_decode ( $response, true ) ?? [ 'response' => $response ];
+		return $response;
 	}
 	
 	protected function setData( string $name, array $keys, array $data ): void
@@ -66,11 +50,11 @@ class Core
 	
 	protected function tag( string $api_name, string $type, array $args ): self
 	{
-		$this -> setDataTag( [ 'leeloo_id', 'status' ], $args );
+		$this -> setDataTag( [ 'person_id', 'status' ], $args );
+		
+		$person_id = $this -> getDataTag( 'person_id' );
 		
 		$status_name = $this -> getDataTag( 'status' );
-		
-		$leeloo_id = $this -> getDataTag( 'leeloo_id' );
 		
 		$status_id = $this -> getData( 'leeloo.tags.' . $status_name );
 		
@@ -79,15 +63,15 @@ class Core
 			throw new LeelooException( 'Not found status id for tag: ' . $status_name );
 		}
 		
-		$this -> setVars( __FUNCTION__, [ $api_name, $type, [ $leeloo_id, $status_name ] ], 3 );
+		$this -> setVars( __FUNCTION__, [ $api_name, $type, [ $person_id, $status_name ] ], 3 );
 		
-		$link = sprintf ( static :: API[$api_name], $leeloo_id, $type );
+		$link = sprintf ( static :: API[$api_name] . '/%s/%s-tag', $person_id, $type );
 		
 		$send = $this -> getData( 'send' );
 		
 		$this -> config -> set( 'send', fn( &$config ) => $config = $this -> cron );
 		
-		$this -> send( $link, [ 'tag_id' => $status_id, 'api' => $api_name ], 'PUT' );
+		$this -> send( $link, [ 'tag_id' => $status_id ], 'PUT' );
 		
 		$this -> config -> set( 'send', fn( &$config ) => $config = $send );
 		

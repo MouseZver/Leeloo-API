@@ -43,9 +43,9 @@ final class Setting
 		$this -> config -> set( 'leeloo.order', fn( &$config ) => $config = $order );
 	}
 	
-	public function sqlCallback( array $sql_callback ): void
+	public function storageCall( array $storage_call ): void
 	{
-		$this -> config -> set( 'sql_callback', fn( &$config ) => $config = $sql_callback + $config );
+		$this -> config -> set( 'sql_callback', fn( &$config ) => $config = $storage_call + $config );
 	}
 	
 	public function data( string $name, array $keys, array $data ): void

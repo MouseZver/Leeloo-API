@@ -5,18 +5,17 @@ declare ( strict_types = 1 );
 namespace Nouvu\Leeloo;
 
 use Nouvu\Config\Config;
+use Nouvu\Database\QueryStorageBank;
 
 final class Api extends Core
 {
 	const API = [
-		'tag_accounts' => 'https://api.leeloo.ai/api/v1/accounts/%s/%s-tag',
-		'tag_people' => 'https://api.leeloo.ai/api/v2/people/%s/%s-tag',
-		'send_template' => 'https://api.leeloo.ai/api/v1/messages/send-template',
-		'send_message' => 'https://api.leeloo.ai/api/v1/messages/send-message',
-		'orders_add' => 'https://api.leeloo.ai/api/v1/orders',
+		'people' => 'https://api.leeloo.ai/api/v2/people',
+		'messages' => 'https://api.leeloo.ai/api/v2/messages',
+		'orders' => 'https://api.leeloo.ai/api/v2/orders',
 	];
 	
-	private array $response = [];
+	private /* Response | array */ $response = [];
 	
 	private array $configuration_keys = [ 
 		'token', 
@@ -29,47 +28,53 @@ final class Api extends Core
 	
 	private int $id = 0;
 	
-	public function __construct ( array $leeloo, bool $send = true )
+	public function __construct ( array $leeloo, QueryStorageBank $storage, bool $send = true )
 	{
 		$this -> config = new Config( [ 
 			'leeloo' => [],
-			'sql_callback' => [
-				'delete' => fn(): bool => false,
-				'update' => fn(): bool => false,
-				'insert' => fn(): bool => false,
+			'storage_call' => [
+				'delete' => static fn( int $id ) => $storage -> save( 'leeloo_delete', $id ),
+				'update' => static fn( int $id, string $response ) => $storage -> save( 'leeloo_update', [ $response, $id ] ),
+				'insert' => static fn( /* string | int */ ...$insert ) => $storage -> save( 'leeloo_insert', $insert ),
 			],
 			'send' => $send
 		] );
 		
 		$this -> set = new Setting( $this -> config );
 		
-		$this -> verify( $this -> configuration_keys, $leeloo, fn( string $key ) => $this -> set -> {$key}( $leeloo[$key] ) );
-	}
-	
-	public function setSqlCallback( array $sql_callback ): void
-	{
-		$this -> set -> sqlCallback( $sql_callback );
+		$this -> verify( $this -> configuration_keys, $leeloo, static fn( string $key ) => $this -> set -> {$key}( $leeloo[$key] ) );
 	}
 	
 	public function send( string $link, array $data, string $request = 'POST' ): bool
 	{
-		$this -> response = ( $this -> getData( 'send' ) ? $this -> stream( $link, $data, $request ) : [ 'send' => 'setSqlCallback' ] );
-		
-		if ( ! empty ( $this -> response['status'] ) )
+		if ( $this -> getData( 'send' ) )
 		{
-			if ( $this -> cron )
+			$this -> response = $this -> stream( $link, $data, $request );
+			
+			if ( $this -> response -> is_error() || empty ( $this -> response -> status() ) )
 			{
-				$this -> getData( 'sql_callback.delete' )( $this -> id );
+				if ( $this -> cron )
+				{
+					$this -> getData( 'storage_call.update' )( $this -> id, json_encode ( $this -> getResponse() ) );
+					
+					return false;
+				}
 			}
-			
-			return true;
+			else
+			{
+				$this -> response = [];
+				
+				if ( $this -> cron )
+				{
+					$this -> getData( 'storage_call.delete' )( $this -> id );
+				}
+				
+				return true;
+			}
 		}
-		
-		if ( $this -> cron )
+		else
 		{
-			$this -> getData( 'sql_callback.update' )( $this -> id, json_encode ( $this -> getResponse() ) );
-			
-			return false;
+			$this -> response = [ 'expected for processing' ];
 		}
 		
 		$this -> saveFailure();
@@ -77,24 +82,14 @@ final class Api extends Core
 		return false;
 	}
 	
-	public function addTag( /* int | string */ ...$args ): self
+	public function addTagPeople( string ...$args ): self
 	{
-		return $this -> tag( 'tag_accounts', 'add', $args );
+		return $this -> tag( 'people', 'add', $args );
 	}
 	
-	public function removeTag( /* int | string */ ...$args ): self
+	public function removeTagPeople( string ...$args ): self
 	{
-		return $this -> tag( 'tag_accounts', 'remove', $args );
-	}
-	
-	public function addTagPeople( /* int | string */ ...$args ): self
-	{
-		return $this -> tag( 'tag_people', 'add', $args );
-	}
-	
-	public function removeTagPeople( /* int | string */ ...$args ): self
-	{
-		return $this -> tag( 'tag_people', 'remove', $args );
+		return $this -> tag( 'people', 'remove', $args );
 	}
 	
 	public function sendTemplate( string $account_id, string $template ): void
@@ -108,21 +103,21 @@ final class Api extends Core
 		
 		$this -> setVars( __FUNCTION__, func_get_args (), 1 );
 		
-		$this -> send( self :: API['send_template'], [ 
+		$this -> send( self :: API['messages'] . '/send-template', [ 
 			'account_id' => $account_id,
 			'template_id' => $template_id
 		] );
 	}
 	
-	public function sendMessage( string $account_id, string $message ): void
+	public function sendMessage( string $account_id, string $message, bool $sending = true ): void
 	{
 		$this -> setVars( __FUNCTION__, func_get_args (), 1 );
 		
 		$send = $this -> getData( 'send' );
 		
-		$this -> config -> set( 'send', fn( &$config ) => $config = true );
+		$this -> config -> set( 'send', fn( &$config ) => $config = $sending );
 		
-		$this -> send( self :: API['send_message'], [ 
+		$this -> send( self :: API['messages'] . '/send-message', [ 
 			'account_id' => $account_id,
 			'text' => $message
 		] );
@@ -132,18 +127,21 @@ final class Api extends Core
 	
 	public function getResponse(): array
 	{
-		return $this -> response;
+		if ( is_array ( $this -> response ) )
+		{
+			return $this -> response;
+		}
+		
+		return $this -> response -> get();
 	}
 	
 	public function get_order_id(): ?string
 	{
-		return $this -> response['data']['id'] ?? null;
+		return $this -> getResponse()['data']['id'] ?? null;
 	}
 	
-	public function orderPending( array $data, string $offer ): ?string
+	public function orderPending( string $email, string $phone, string $personId, string $offer ): ?string
 	{
-		$this -> verify( [ 'email', 'phone', 'accountId' ], $data );
-		
 		$offerId = $this -> getData( 'leeloo.order.offer.' . $offer );
 		
 		if ( is_null ( $offerId ) )
@@ -153,11 +151,14 @@ final class Api extends Core
 		
 		$this -> setVars( __FUNCTION__, func_get_args (), 2 );
 		
-		$this -> response = $this -> stream( self :: API['orders_add'], $data + [
+		$this -> response = $this -> stream( self :: API['orders'], [
 			'paymentCreditsId'	=> $this -> getData( 'leeloo.order.paymentCreditsId' ),
 			'transactionDate'	=> gmdate ( 'Y-m-d H:i' ),
 			'offerId'			=> $offerId,
 			'isNotifyAccount'	=> 'false',
+			'email'				=> $email,
+			'phone'				=> $phone, 
+			'personId'			=> $personId,
 		], 
 		'POST' );
 		
@@ -172,7 +173,7 @@ final class Api extends Core
 		
 		$this -> setVars( __FUNCTION__, func_get_args (), 2 );
 		
-		$this -> response = $this -> stream( self :: API['orders_add'] . '/' . $leeloo_order_id, [
+		$this -> response = $this -> stream( self :: API['orders'] . '/' . $leeloo_order_id, [
 			'status'			=> $data['status'],
 			'price'				=> sprintf ( '%d', $data['price'] ),
 			'currency'			=> $data['currency'],
@@ -213,7 +214,7 @@ final class Api extends Core
 			throw new LeelooException( 'The orderPending method is not allowed for data processing' );
 		}
 		
-		$this -> getData( 'sql_callback.insert' )( $method, json_encode ( $args ), json_encode ( $this -> getResponse() ), $priority );
+		$this -> getData( 'storage_call.insert' )( $method, json_encode ( $args ), json_encode ( $this -> getResponse() ), $priority );
 	}
 	
 	public function cron( array $queue ): void
@@ -226,16 +227,18 @@ final class Api extends Core
 		
 		try
 		{
-			$this -> {$queue['method']}( ...$data );
-			
-			if ( $queue['method'] == 'orderUpdate' )
+			if ( isset ( $data['status'] ) && in_array ( $queue['method'], [ 'sendMessage', 'sendTemplate', 'orderUpdate' ] ) )
 			{
-				$this -> getData( 'sql_callback.delete' )( $this -> id );
+				$this -> getData( 'storage_call.delete' )( $this -> id );
+				
+				return;
 			}
+			
+			$this -> {$queue['method']}( ...$data );
 		}
 		catch ( LeelooOrderFailed $e )
 		{
-			$this -> getData( 'sql_callback.update' )( $this -> id, json_encode ( $this -> getResponse() ) );
+			$this -> getData( 'storage_call.update' )( $this -> id, json_encode ( $this -> getResponse() ) );
 			
 			throw $e;
 		}
