@@ -37,7 +37,7 @@ $storage -> setEvent( 'leeloo_update', static function ( $db, array $items ): vo
 
 
 # composer require nouvu/logger
-//$logger = new \Nouvu\Logger( __DIR__ . '/cron' );
+//$logger = new \Nouvu\Logger\Logger( __DIR__ . '/cron' );
 
 $leeloo = new \Nouvu\Leeloo\Api( $config, true );
 

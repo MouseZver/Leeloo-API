@@ -42,7 +42,7 @@ final class Api extends Core
 		
 		$this -> set = new Setting( $this -> config );
 		
-		$this -> verify( $this -> configuration_keys, $leeloo, static fn( string $key ) => $this -> set -> {$key}( $leeloo[$key] ) );
+		$this -> verify( $this -> configuration_keys, $leeloo, fn( string $key ) => $this -> set -> {$key}( $leeloo[$key] ) );
 	}
 	
 	public function send( string $link, array $data, string $request = 'POST' ): bool
@@ -115,7 +115,7 @@ final class Api extends Core
 		
 		$send = $this -> getData( 'send' );
 		
-		$this -> config -> set( 'send', fn( &$config ) => $config = $sending );
+		$this -> config -> set( 'send', fn( &$config ) => $config = $this -> cron ?: $sending );
 		
 		$this -> send( self :: API['messages'] . '/send-message', [ 
 			'account_id' => $account_id,
