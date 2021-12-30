@@ -17,7 +17,7 @@ class Response
 			'X-Leeloo-AuthToken: ',
 		],
 		CURLOPT_POST			=> true,
-		CURLOPT_TIMEOUT			=> 5,
+		CURLOPT_TIMEOUT			=> 10,
 		CURLOPT_AUTOREFERER		=> true,
 		CURLOPT_SSL_VERIFYPEER	=> false,
 		CURLOPT_SSL_VERIFYHOST	=> false,
