@@ -125,6 +125,20 @@ final class Api extends Core
 		$this -> config -> set( 'send', fn( &$config ) => $config = $send );
 	}
 	
+	public function updateClient( string $people_id, string $phone, string $email, array $custom_fields = null ): void
+	{
+		$this -> setVars( __FUNCTION__, func_get_args (), 2 );
+		
+		$attributes = compact ( 'phone', 'email' );
+		
+		if ( is_array ( $custom_fields ) )
+		{
+			$attributes['custom_fields'] = $custom_fields;
+		}
+		
+		$this -> send( self :: API['people'] . '/' . $people_id, $attributes, 'PUT' );
+	}
+	
 	public function getResponse(): array
 	{
 		if ( is_array ( $this -> response ) )
